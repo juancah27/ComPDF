@@ -1,0 +1,39 @@
+{
+    "name": "ComPDF",
+    "short_name": "ComPDF",
+    "description": "Herramientas PDF que funcionan 100 % en tu navegador",
+    "start_url": "/ComPDF/",
+    "scope": "/ComPDF/",
+    "display": "standalone",
+    "background_color": "#222222",
+    "theme_color": "#4f46e5",
+    "orientation": "portrait-primary",
+    "icons": [
+        {
+            "src": "/ComPDF/images/favicon-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable any"
+        },
+        {
+            "src": "/ComPDF/images/favicon-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable any"
+        },
+        {
+            "src": "/ComPDF/images/apple-touch-icon.png",
+            "sizes": "180x180",
+            "type": "image/png",
+            "purpose": "any"
+        }
+    ],
+    "categories": [
+        "productivity",
+        "utilities",
+        "pdf",
+        "offline",
+        "tools"
+    ],
+    "screenshots": []
+}
