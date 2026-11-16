@@ -60,3 +60,7 @@ bentopdf-pymupdf-wasm/
 /security-headers-docs.conf
 /dist-*.zip
 /docs/.vitepress/cache/
+
+# ComPDF: los paquetes WASM incluyen carpetas dist/ que sí deben publicarse
+!public/wasm/**/dist/
+!public/wasm/**/dist/**
