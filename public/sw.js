@@ -5,7 +5,7 @@
  * Version: 1.1.0
  */
 
-const CACHE_VERSION = 'bentopdf-v13';
+const CACHE_VERSION = 'bentopdf-v13-compdf-coi1';
 const CACHE_NAME = `${CACHE_VERSION}-static`;
 
 const trustedCdnOrigins = new Set(['https://cdn.jsdelivr.net']);
@@ -101,10 +101,11 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  let responsePromise = null;
   if (isLocal && url.pathname.includes('/locales/')) {
-    event.respondWith(networkFirstStrategy(event.request));
+    responsePromise = networkFirstStrategy(event.request);
   } else if (shouldCache(url.pathname, isCDN)) {
-    event.respondWith(cacheFirstStrategyWithDedup(event.request, isCDN));
+    responsePromise = cacheFirstStrategyWithDedup(event.request, isCDN);
   } else if (
     isLocal &&
     (url.pathname.endsWith('.html') ||
@@ -113,9 +114,40 @@ self.addEventListener('fetch', (event) => {
         url.pathname
       ))
   ) {
-    event.respondWith(networkFirstStrategy(event.request));
+    responsePromise = networkFirstStrategy(event.request);
+  } else if (isLocal) {
+    // ComPDF: también pasan por aquí las demás respuestas del sitio
+    // (p. ej. /ComPDF/es/) para poder añadirles las cabeceras COOP/COEP.
+    responsePromise = fetch(event.request);
+  }
+
+  if (responsePromise) {
+    event.respondWith(
+      isLocal ? responsePromise.then(withCrossOriginIsolation) : responsePromise
+    );
   }
 });
+
+/**
+ * ComPDF: GitHub Pages no permite configurar cabeceras HTTP. LibreOffice WASM
+ * (Word/Excel/PowerPoint a PDF) usa hilos y necesita SharedArrayBuffer, que solo
+ * existe si la página está aislada (COOP + COEP). El service worker añade esas
+ * cabeceras a las respuestas del propio sitio.
+ */
+function withCrossOriginIsolation(response) {
+  if (!response || response.status === 0 || response.type === 'opaque') {
+    return response;
+  }
+  const headers = new Headers(response.headers);
+  headers.set('Cross-Origin-Opener-Policy', 'same-origin');
+  headers.set('Cross-Origin-Embedder-Policy', 'require-corp');
+  headers.set('Cross-Origin-Resource-Policy', 'same-origin');
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
 
 /**
  * Cache-first strategy with deduplication

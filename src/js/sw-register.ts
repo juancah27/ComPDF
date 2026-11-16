@@ -45,6 +45,24 @@ function sendTrustedHostsToSw(target: ServiceWorker | null | undefined) {
   target.postMessage({ type: 'SET_TRUSTED_CDN_HOSTS', hosts });
 }
 
+/**
+ * ComPDF: GitHub Pages no envía COOP/COEP; las añade el service worker. Una
+ * página cargada antes de que el SW la controlara no está aislada, así que se
+ * recarga una sola vez por sesión (evita bucles si el navegador no lo soporta).
+ */
+function reloadForCrossOriginIsolation() {
+  if (window.crossOriginIsolated) return;
+  const key = 'compdf:coi-reload';
+  try {
+    if (sessionStorage.getItem(key)) return;
+    sessionStorage.setItem(key, '1');
+  } catch {
+    return;
+  }
+  console.log('[SW] Reloading to enable cross-origin isolation');
+  window.location.reload();
+}
+
 if (isDevelopment) {
   console.log('[Dev Mode] Service Worker registration skipped in development');
   console.log('Service Worker will be active in production builds');
@@ -109,9 +127,18 @@ if (isDevelopment) {
     });
 
     navigator.serviceWorker.addEventListener('controllerchange', () => {
-      if (!hadController) return;
+      if (!hadController) {
+        reloadForCrossOriginIsolation();
+        return;
+      }
       console.log('[SW] New service worker activated, reloading...');
       window.location.reload();
     });
+
+    // ComPDF: si el service worker ya controla la página pero aún no está
+    // aislada (primera visita o versión anterior del SW), recargar una vez.
+    if (navigator.serviceWorker.controller) {
+      reloadForCrossOriginIsolation();
+    }
   });
 }
