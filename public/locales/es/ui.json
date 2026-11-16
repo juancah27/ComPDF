@@ -1410,6 +1410,7 @@
   "Text extracted successfully!": "¡Texto extraído correctamente!",
   "Text to PDF": "Texto a PDF",
   "That password did not open any of the remaining files.": "Esa contraseña no abrió ninguno de los archivos restantes.",
+  "The Office conversion engine could not start on this page yet. Reload the page (F5) and try again.": "El motor de conversión de Office aún no pudo iniciarse en esta página. Recarga la página (F5) e inténtalo de nuevo.",
   "The PDF file(s) do not contain any attachments to extract.": "Los archivos PDF no contienen adjuntos que extraer.",
   "The PDF has {{totalPages}} pages, which is not evenly divisible by {{nValue}}. The last PDF will contain {{remainder}} page(s).": "El PDF tiene {{totalPages}} páginas, que no es divisible exactamente entre {{nValue}}. El último PDF contendrá {{remainder}} página(s).",
   "The PDF might be corrupted or password protected.": "Puede que el PDF esté dañado o protegido con contraseña.",

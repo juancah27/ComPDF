@@ -72,6 +72,19 @@ export class LibreOfficeConverter {
       return;
     }
 
+    // ComPDF: LibreOffice WASM usa hilos y necesita SharedArrayBuffer. Si la
+    // página no está aislada, avisar al momento en vez de esperar al timeout.
+    if (
+      typeof SharedArrayBuffer === 'undefined' ||
+      (typeof crossOriginIsolated !== 'undefined' && !crossOriginIsolated)
+    ) {
+      throw new Error(
+        trText(
+          'The Office conversion engine could not start on this page yet. Reload the page (F5) and try again.'
+        )
+      );
+    }
+
     this.initializing = true;
     let progressCallback = onProgress; // Store original callback
 

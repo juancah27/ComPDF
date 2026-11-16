@@ -1,4 +1,5 @@
 import './utils/map-upsert-polyfill.js';
+import './sw-register.js';
 import './utils/setup-pdf-worker.js';
 import { categories } from './config/tools.js';
 import { dom, switchView, hideAlert } from './ui.js';

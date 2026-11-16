@@ -52,7 +52,7 @@ function sendTrustedHostsToSw(target: ServiceWorker | null | undefined) {
  */
 function reloadForCrossOriginIsolation() {
   if (window.crossOriginIsolated) return;
-  const key = 'compdf:coi-reload';
+  const key = `compdf:coi-reload:${window.location.pathname}`;
   try {
     if (sessionStorage.getItem(key)) return;
     sessionStorage.setItem(key, '1');
@@ -67,8 +67,13 @@ if (isDevelopment) {
   console.log('[Dev Mode] Service Worker registration skipped in development');
   console.log('Service Worker will be active in production builds');
 } else if ('serviceWorker' in navigator) {
+  // ComPDF: comprobarlo en cuanto carga el script, antes de que el usuario
+  // empiece a trabajar en la página (p. ej. en el generador de flujos).
+  if (navigator.serviceWorker.controller) {
+    reloadForCrossOriginIsolation();
+  }
+
   window.addEventListener('load', () => {
-    const hadController = Boolean(navigator.serviceWorker.controller);
     const swPath = `${import.meta.env.BASE_URL}sw.js`;
     console.log('[SW] Registering Service Worker at:', swPath);
     navigator.serviceWorker
@@ -126,19 +131,19 @@ if (isDevelopment) {
       sendTrustedHostsToSw(registration.active);
     });
 
+    // ComPDF: el SW se registra ahora en todas las páginas, así que ya no se
+    // recarga a la fuerza al actualizarse (borraría, p. ej., un flujo a medio
+    // montar). Solo se recarga si la página aún no está aislada.
     navigator.serviceWorker.addEventListener('controllerchange', () => {
-      if (!hadController) {
-        reloadForCrossOriginIsolation();
-        return;
+      // Es un SW distinto: permite otra recarga aunque ya hubo una en esta página.
+      try {
+        sessionStorage.removeItem(
+          `compdf:coi-reload:${window.location.pathname}`
+        );
+      } catch {
+        /* sin sessionStorage: reloadForCrossOriginIsolation no recargará */
       }
-      console.log('[SW] New service worker activated, reloading...');
-      window.location.reload();
-    });
-
-    // ComPDF: si el service worker ya controla la página pero aún no está
-    // aislada (primera visita o versión anterior del SW), recargar una vez.
-    if (navigator.serviceWorker.controller) {
       reloadForCrossOriginIsolation();
-    }
+    });
   });
 }
